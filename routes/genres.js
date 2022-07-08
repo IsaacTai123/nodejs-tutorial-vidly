@@ -1,47 +1,7 @@
+const { Genre, validate } = require("../modules/genres");
 const express = require("express");
 const router = express.Router();
-const Joi = require("joi");
-const {default: mongoose} = require("mongoose");
 
-// const genres = [
-//   { id: 1, name: "action" },
-//   { id: 2, name: "horror" },
-//   { id: 3, name: "comedy" },
-// ];
-
-// Create schema
-const genreSchema = new mongoose.Schema({
-  name: { 
-    type: String, 
-    required: true,
-    enum: ['action', 'horror', 'comedy', 'documentary', 'adventure'],
-    minlength: 5,
-    maxlength: 50
-  },
-  author: { type: String , required: true },
-  tags: {
-    type: Array,
-    validate: {
-      validator: function(v) {
-        return v && v.length > 0;
-      },
-      message: "Genres need at least one tags"
-    }
-  },
-  isAvaliable: Boolean,
-  price: {
-    type: Number,
-    required: function() { return this.isAvaliable; },
-    min: 0,
-    max: 1000,
-    get: v => Math.round(v),
-    set: v => Math.round(v)
-  },
-  date: { type: Date, default: Date.now },
-})
-
-// Create module
-const Genre = mongoose.model('Genre', genreSchema);
 
 // Create a instance of Genres class
 async function createGenres() {
@@ -84,7 +44,7 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   // Input Validation
-  const { error } = validateGenres(req.body);
+  const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
   let genre = new Genre({
@@ -101,7 +61,7 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   // Input Validation
-  const { error } = validateGenres(req.body);
+  const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
   // update genre
@@ -130,13 +90,5 @@ router.delete("/:id", async (req, res) => {
   res.send(genre);
 });
 
-function validateGenres(genre) {
-  const schema = Joi.object({
-    name: Joi.string().min(3).required(),
-    author: Joi.string().min(3).required()
-  });
-
-  return schema.validate(genre, { allowUnknown: true });
-}
 
 module.exports = router;
