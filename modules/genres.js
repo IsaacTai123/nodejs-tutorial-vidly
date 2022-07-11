@@ -44,5 +44,6 @@ function validateGenres(genre) {
   return schema.validate(genre, { allowUnknown: true });
 }
 
+exports.genreSchema = genreSchema;
 exports.Genre = Genre;
 exports.validate = validateGenres;
