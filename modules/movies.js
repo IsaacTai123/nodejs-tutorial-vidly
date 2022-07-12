@@ -4,10 +4,27 @@ const { genreSchema, Genre } = require('./genres');
 
 // create movie model
 const Movie = mongoose.model("movies", new mongoose.Schema({
-  title: String,
-  genre: genreSchema,
-  numberInStock: Number,
-  dailyRentalRate: Number
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 5,
+    maxlength: 255
+  },
+  genre: { 
+    type: genreSchema,
+    required: true
+  },
+  numberInStock: { 
+    type: Number,
+    required: true,
+    min: 0,
+    max: 255
+  },
+  dailyRentalRate: {
+    type: Number,
+    required: true
+  }
 }));
 
 // create movie
@@ -26,9 +43,9 @@ async function createMovie(genre) {
 async function validateMovie(movie) {
   const schema = Joi.object({
     title: Joi.string().min(3).required(),
-    genre: Joi.object().required(),
-    numberInStock: Joi.number(),
-    dailyRentalRate: Joi.number()
+    genreId: Joi.string().required(),  // Joi schema is what client send us, that the input to our API.
+    numberInStock: Joi.number().min(0).required(),
+    dailyRentalRate: Joi.number().min(0).required()
   })
 
   return schema.validate(movie, { allowUnknown: true });
@@ -47,5 +64,3 @@ async function validateMovie(movie) {
 
 exports.Movie = Movie;
 exports.validate = validateMovie;
-
-// console.log(`genreSchema: ${genreSchema}, validate: ${validate}, Genre: ${Genre} `);

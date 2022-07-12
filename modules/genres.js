@@ -10,20 +10,20 @@ const genreSchema = new mongoose.Schema({
     minlength: 5,
     maxlength: 50
   },
-  author: { type: String , required: true },
+  author: { type: String },
   tags: {
     type: Array,
-    validate: {
-      validator: function(v) {
-        return v && v.length > 0;
-      },
-      message: "Genres need at least one tags"
-    }
+    // validate: {
+    //   validator: function(v) {
+    //     return v && v.length > 0;
+    //   },
+    //   message: "Genres need at least one tags"
+    // }
   },
   isAvaliable: Boolean,
   price: {
     type: Number,
-    required: function() { return this.isAvaliable; },
+    // required: function() { return this.isAvaliable; },
     min: 0,
     max: 1000,
     get: v => Math.round(v),
