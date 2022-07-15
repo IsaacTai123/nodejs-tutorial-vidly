@@ -48,11 +48,11 @@ router.post("/", async (req, res) => {
   if (error) return res.status(400).send(error.details[0].message);
 
   let genre = new Genre({
-    name: req.body.name,
-    author: req.body.author,
-    tags: req.body.tags,
-    isAvaliable: req.body.isAvaliable,
-    price: req.body.price
+    name: req.body.name
+    // author: req.body.author,
+    // tags: req.body.tags,
+    // isAvaliable: req.body.isAvaliable,
+    // price: req.body.price
   })
   genre = await genre.save();
 
@@ -67,9 +67,9 @@ router.put("/:id", async (req, res) => {
   // update genre
   const genre = await Genre.findOneAndUpdate({ _id: req.params.id }, { 
     $set: {
-      tags: req.body.tags,
-      name: req.body.name,
-      author: req.body.author
+      // tags: req.body.tags,
+      name: req.body.name
+      // author: req.body.author
     }
   }, { new: true }) // get the updated object from the database
 
