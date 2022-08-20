@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const { genreSchema, Genre } = require('./genres');
 
 // create movie model
-const Movie = mongoose.model("movies", new mongoose.Schema({
+const Movie = mongoose.model("Movies", new mongoose.Schema({
   title: {
     type: String,
     required: true,
