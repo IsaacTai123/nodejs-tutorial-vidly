@@ -43,7 +43,7 @@ async function createMovie(genre) {
 function validateMovie(movie) {
   const schema = Joi.object({
     title: Joi.string().min(3).required(),
-    genreId: Joi.string().required(),  // Joi schema is what client send us, that the input to our API.
+    genreId: Joi.objectId().required(),  // Joi schema is what client send us, that the input to our API.
     numberInStock: Joi.number().min(0).required(),
     dailyRentalRate: Joi.number().min(0).required()
   })

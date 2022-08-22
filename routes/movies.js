@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
   const genre = await Genre.findById(req.body.genreId);
   if (!genre) return res.status(400).send('Invalid genre.');
 
-  let movie = new Movie({
+  const movie = new Movie({
     title: req.body.title,
     genre: {
       _id: genre._id,
@@ -32,7 +32,9 @@ router.post('/', async (req, res) => {
     dailyRentalRate: req.body.dailyRentalRate
   });
 
-  movie = await movie.save();
+  // movie = await movie.save();
+  await movie.save();  //因為ID是在mongoose就創建好了的所以我們這邊不需要重新assign movie 直接用原本的就好. 所以movie 的type 就可以用const 而不是 let
+
   res.send(movie);
 });
 
