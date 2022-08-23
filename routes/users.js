@@ -1,6 +1,7 @@
 const { User, validate } = require('../modules/users');
 const express = require('express');
 const router = express.Router();
+const _ = require('lodash');
 
 router.get('', async (req, res) => {
   const results = await User.find().sort({ name: 1 });
@@ -12,23 +13,17 @@ router.post('', async (req, res) => {
   let { error } = validate(req.body);
   console.log("error: " + error);
   if (error) return res.status(400).send(error.details[0].message);
-  
+
   // Check if it exist
   let user = await User.findOne({ email: req.body.email });
   if (user) return res.status(400).send('User already registered')
 
   // create new Document
   console.log("typeof User: " + typeof(User));
-  user = new User({
-    name: req.body.name,
-    email: req.body.email,
-
-    // TODO: password encryp
-    password: req.body.password
-  });
-
+  user = new User(_.pick(req.body, [ 'name', 'email', 'password' ]));
   await user.save();
-  res.send(user);
+
+  res.send(_.pick(user, [ '_id', 'name', 'email' ]));
 })
 
 module.exports = router;
