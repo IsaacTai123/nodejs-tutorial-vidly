@@ -2,6 +2,7 @@ const { User, validate } = require('../modules/users');
 const express = require('express');
 const router = express.Router();
 const _ = require('lodash');
+const bcrypt = require('bcrypt');
 
 router.get('', async (req, res) => {
   const results = await User.find().sort({ name: 1 });
@@ -21,6 +22,8 @@ router.post('', async (req, res) => {
   // create new Document
   console.log("typeof User: " + typeof(User));
   user = new User(_.pick(req.body, [ 'name', 'email', 'password' ]));
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(user.password, salt);
   await user.save();
 
   res.send(_.pick(user, [ '_id', 'name', 'email' ]));
