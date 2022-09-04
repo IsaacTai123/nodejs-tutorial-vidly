@@ -6,7 +6,7 @@ const genreSchema = new mongoose.Schema({
   name: { 
     type: String, 
     required: true,
-    enum: ['action', 'horror', 'comedy', 'documentary', 'adventure'],
+    enum: ['action', 'horror', 'comedy', 'documentary', 'adventure', 'Drama'],
     minlength: 5,
     maxlength: 50
   }

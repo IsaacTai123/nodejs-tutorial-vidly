@@ -1,3 +1,4 @@
+const auth = require('../middleware/auth');
 const { User, validate } = require('../modules/users');
 const express = require('express');
 const router = express.Router();
@@ -9,7 +10,7 @@ router.get('', async (req, res) => {
   res.send(results);
 })
 
-router.post('', async (req, res) => {
+router.post('', auth, async (req, res) => {
   // check the input
   let { error } = validate(req.body);
   console.log("error: " + error);

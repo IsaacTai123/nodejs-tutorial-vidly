@@ -1,3 +1,4 @@
+const auth = require('../middleware/auth');
 const { Rental, validate } = require('../modules/rental');
 const { Customer } = require('../modules/customers');
 const { Movie } = require('../modules/movies');
@@ -13,7 +14,7 @@ router.get('/', async (req, res) => {
   res.send(results);
 })
 
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   // validate input
   const { error } = validate(req.body);
   console.log(error);
