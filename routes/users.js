@@ -5,9 +5,10 @@ const router = express.Router();
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
 
-router.get('', async (req, res) => {
-  const results = await User.find().sort({ name: 1 });
-  res.send(results);
+// get current user
+router.get('/me', auth, async (req, res) => {
+  const user = await User.findById(req.user._id).select({ password : 0 });
+  res.send(user);
 })
 
 router.post('', auth, async (req, res) => {

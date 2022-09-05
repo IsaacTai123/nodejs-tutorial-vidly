@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const config = require('config');
+const util = require('util');
 
 module.exports = function (req, res, next) {
   // check token exist
@@ -9,7 +10,7 @@ module.exports = function (req, res, next) {
   // check token is valid
   try {
     const decoded = jwt.verify(token, config.get('jwtPrivateKey'));
-    console.log('jwt decoded: ' + decoded);
+    console.log('jwt decoded: ' + util.inspect(decoded, {depth: null}));  // print out object in console
     req.user = decoded;
     next();
   } catch (ex) {
