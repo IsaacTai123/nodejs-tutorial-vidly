@@ -1,4 +1,4 @@
-const winston = require('winston');
+// const winston = require('winston');
 require('express-async-errors');
 const error = require('./middleware/error');
 const config = require('config');
@@ -16,8 +16,8 @@ const app = express();
 // const Fawn = require("fawn");
 
 // add a "transport" for winston logger (File and console)
-winston.add(new winston.transports.File({ filename: 'logfile.log' }));
-winston.add(new winston.transports.Console());
+// winston.add(new winston.transports.File({ filename: 'logfile.log' }));
+// winston.add(new winston.transports.Console());
 
 // check if env variable is set. if not then terminate the app
 if (!config.get("jwtPrivateKey")) {
