@@ -36,7 +36,6 @@ router.get("/", async (req, res) => {
     res.send(genres);
 });
 
-
 router.get("/:id", async (req, res) => {
   const genre = await Genre.findById(req.params.id);
 
