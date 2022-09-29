@@ -16,10 +16,38 @@ const express = require("express");
 const app = express();
 // const Fawn = require("fawn");
 
+// handle uncaught exception
+// process.on("uncaughtException", (ex) => {
+//   console.log("WE GOT AN  UNCOUGHT EXCEPTION");
+//   winston.error(ex.message, { metadata: ex });
+// })
+
+// winston.exceptions.handle(new winston.transports.File({ filename: 'uncaoughtExceptions.log' }));
+// winston.rejections.handle(new winston.transports.File({ filename: "unhandledRejection.log" }));
+winston.handleRejections(new winston.transports.File({ filename: "fffff.log" }));
+
+// handle unhandle rejection
+process.on("unhandledRejection", (ex) => {
+  console.log("WE GOT AN UNHANDLE REJECTION");
+  winston.error(ex.message, { metadata: ex });
+})
+
 // add a "transport" for winston logger (File and console)
 winston.add(new winston.transports.File({ filename: 'logfile.log' }));
 winston.add(new winston.transports.Console());
-winston.add(new winston.transports.MongoDB({ db: 'mongodb://localhost/vidly' }));
+winston.add(new winston.transports.MongoDB({ 
+  db: 'mongodb://localhost:27017/vidly',
+  options: {
+    useUnifiedTopology: true
+  }
+}));
+
+// throw new error on startup
+// throw new Error("Something failed during startup.");
+
+// reject a promise and throw an error message
+Promise.reject();
+// const p = Promise.reject(new Error("Something failed miserably"));
 
 // check if env variable is set. if not then terminate the app
 if (!config.get("jwtPrivateKey")) {
@@ -28,7 +56,7 @@ if (!config.get("jwtPrivateKey")) {
 }
 
 // Connect to DB
-mongoose.connect('mongodb://localhost/vidly')
+mongoose.connect("mongodb://localhost:27017/vidly")
   .then(() => console.log('Connected to MongoDB...'))
   .catch((err) => console.log('Could not connect to MongoDB...', err))
 
