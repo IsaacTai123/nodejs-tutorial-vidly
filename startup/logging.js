@@ -45,7 +45,21 @@ const logger = new createLogger({
     myFormat
   ),
   transports: [
-    new transports.File({ filename: 'logfile.log' }),
+    new transports.File({
+      filename: 'logs/errors.log',
+      level: 'error'
+    }),
+    new transports.File({ 
+      filename: 'logs/combined.log',
+      level: "debug",
+      format: format.combine(
+        format.timestamp({ format: "MMM-DD-YYYY HH:MM:ss" }),
+        format.align(),
+        format.printf(
+          (info) => `[${info.timestamp}] ${info.level}: ${info.message}  `
+        )
+      )
+    }),
     new transports.Console({ colorize: true, prettyPrint: true }),
     new transports.MongoDB({
       db: 'mongodb://localhost:27017/vidly',
@@ -55,10 +69,10 @@ const logger = new createLogger({
     })
   ],
   exceptionHandlers: [
-    new transports.File({ filename: 'uncaoughtExceptions.log' })
+    new transports.File({ filename: 'logs/uncaoughtExceptions.log' })
   ],
   rejectionHandlers: [
-    new transports.File({ filename: 'unhandleRejection.log' })
+    new transports.File({ filename: 'logs/unhandleRejection.log' })
   ]
 });
 
@@ -69,10 +83,10 @@ const logger = new createLogger({
 //         debug: 'green'
 //     });
 
-logger.info('This is a info statement');
-logger.debug('This is a debug statement');
-logger.warn('This is a warning statement');
-logger.error('This is a error statement');
+// logger.info('This is a info statement');
+// logger.debug('This is a debug statement');
+// logger.warn('This is a warning statement');
+// logger.error('This is a error statement');
 
 // throw new error on startup
 // throw new Error("Something failed during startup.");
