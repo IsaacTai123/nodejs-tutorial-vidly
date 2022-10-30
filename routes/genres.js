@@ -3,6 +3,7 @@ const admin = require('../middleware/admin');
 const { Genre, validate } = require("../modules/genres");
 const express = require("express");
 const router = express.Router();
+const mongoose = require('mongoose');
 
 
 // Create a instance of Genres class
@@ -37,6 +38,10 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(404).send('Invalid ID');
+  }
+
   const genre = await Genre.findById(req.params.id);
 
   // check if genre is null then return 404
