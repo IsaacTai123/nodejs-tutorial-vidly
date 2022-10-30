@@ -1,5 +1,6 @@
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
+const validateObjectId = require('../middleware/validateObjectId');
 const { Genre, validate } = require("../modules/genres");
 const express = require("express");
 const router = express.Router();
@@ -37,11 +38,7 @@ router.get("/", async (req, res) => {
     res.send(genres);
 });
 
-router.get("/:id", async (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return res.status(404).send('Invalid ID');
-  }
-
+router.get("/:id", validateObjectId, async (req, res) => {
   const genre = await Genre.findById(req.params.id);
 
   // check if genre is null then return 404
