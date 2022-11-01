@@ -48,71 +48,66 @@ describe('/api/genres', () => {
 
   describe('POST /', () => {
 
+    // Defind the happy path, and then in each test, we change 
+    // one parameter that clearly aligns with the name of the test.
+
+    let token;
+    let name;
+
+    const exec = async () => {
+      return await request(server)
+        .post('/api/genres')
+        .set('x-auth-token', token)
+        .send({ name: name }); // if key and value are the same we can shrink it down to just "{ name }"
+    };
+
+    beforeEach(() => {
+      // generate a auth token before each test
+      token = new User().generateAuthToken();
+      name = 'genre1';
+    });
+
     // Testing the authorization
     it('should return 401 if client is not logged in', async () => {
-      const res = await request(server)
-        .post('/api/genres')
-        .send({ name: 'comedy' });
+      token = '';
+
+      const res = await exec();
+
       expect(res.status).toBe(401);
     });
 
     // Testing invalid input
     it('Should return 400 if genre is less than 5 characters', async () => {
-      // generate a auth token
-      const token = new User().generateAuthToken();
-
-      // include token in the request
-      const res = await request(server)
-        .post('/api/genres')
-        .set('x-auth-token', token)
-        .send({ name: 'kitt' });
+      name = '1234';
+      const res = await exec();
 
       expect(res.status).toBe(400);
     });
 
     it('Should return 400 if genre is more than 50 characters', async () => {
-      // generate a auth token
-      const token = new User().generateAuthToken();
 
       // create a long str more then 50 characters
-      const longName = Array(52).join('a');
-
-      // include token in the request
-      const res = await request(server)
-        .post('/api/genres')
-        .set('x-auth-token', token)
-        .send({ name: longName });
+      name = Array(52).join('a');
+      const res = await exec();
 
       expect(res.status).toBe(400);
     });
 
     // Testing the data is inside the db
     it('should save the genre if it is valid', async () => {
-      // generate a auth token
-      const token = new User().generateAuthToken();
+      await exec();
 
-      // send request with token
-      const res = await request(server)
-        .post('/api/genres')
-        .set('x-auth-token', token)
-        .send({ name: 'kitty' });
-
-      const genre = await Genre.find({ name: 'kitty' });
+      const genre = await Genre.find({ name: 'genre1' });
       
       expect(genre).not.toBeNull();
     });
     
     // Testing the data is in the body of the response
     it('should return the genre if it is valid', async () => {
-      const token = new User().generateAuthToken();
-
-      const res = await request(server)
-        .post('/api/genres')
-        .set('x-auth-token', token)
-        .send({ name: 'kitty' });
+      const res = await exec();
 
       expect(res.body).toHaveProperty('_id');
-      expect(res.body).toHaveProperty('name', 'kitty');
+      expect(res.body).toHaveProperty('name', 'genre1');
     });
   });
 });
