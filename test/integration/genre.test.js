@@ -1,6 +1,5 @@
 const request = require('supertest');
 const { Genre } = require('../../modules/genres');
-let server = require('../../index');
 const { User } = require('../../modules/users');
 
 describe('/api/genres', () => {
