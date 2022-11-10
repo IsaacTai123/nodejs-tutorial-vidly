@@ -2,12 +2,14 @@ const request = require('supertest');
 const { User } = require('../../modules/users');
 const { Genre } = require('../../modules/genres');
 
+let server;
+
 describe('Auth Middleware', () => {
 
   beforeEach(() => { server = require('../../index'); });
   afterEach( async () => { 
-    server.close(); 
     await Genre.deleteMany({}); 
+    await server.close(); 
   });
 
   let token;
