@@ -65,7 +65,7 @@ router.post("/", auth, async (req, res) => {
   res.send(genre);
 });
 
-router.put("/:id", auth, async (req, res) => {
+router.put("/:id", [auth, validateObjectId], async (req, res) => {
   // Input Validation
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
@@ -85,7 +85,7 @@ router.put("/:id", auth, async (req, res) => {
   res.send(genre);
 });
 
-router.delete("/:id", [auth, admin], async (req, res) => {
+router.delete("/:id", [auth,  admin, validateObjectId], async (req, res) => {
   // delete genre
   const genre = await Genre.findByIdAndRemove({ _id: req.params.id });
 

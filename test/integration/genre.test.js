@@ -127,26 +127,25 @@ describe('/api/genres', () => {
     let token;
     let name;
     let id;
+    let genre;
 
     const exec = async () => {
       return await request(server)
-        .put(`/api/genres/${id}`)
+        .put('/api/genres/' + id)
         .set('x-auth-token', token)
         .send({ name: name });
     };
 
     beforeEach( async () => {
-      const genre = new Genre({ 
-        _id: mongoose.Types.ObjectId().toHexString(),
-        name: 'before'
-      });
+      genre = new Genre({ name: 'before' });
       await genre.save();
 
       token = new User().generateAuthToken();
       id = genre._id;
+      name = 'updatedName';
     });
 
-    it('should return 401 if no token has provided', async () => {
+    it('should return 401 if client is not login', async () => {
       token = '';
 
       const res = await exec();
@@ -154,7 +153,7 @@ describe('/api/genres', () => {
       expect(res.status).toBe(401);
     })
 
-    it('should return 400 if request is not valid', async () => {
+    it('should return 400 if genre is less than 5 characters', async () => {
       name = 'gen';
      
       const res = await exec();
@@ -162,16 +161,24 @@ describe('/api/genres', () => {
       expect(res.status).toBe(400);
     });
 
-    it('should return updated genre if id is exist', async () => {
-      name = 'after';
-
+    it('should return 400 if genre is more than 50 characters', async () => {
+      name = new Array(52).join('a');
+     
       const res = await exec();
-  
-      // check the name has been changed
-      expect(res.body).toHaveProperty('name', 'after');
+
+      expect(res.status).toBe(400);
     });
 
-    it('should return 404 if genre ID is not exist', async () => {
+    it('should return 404 if ID is invalid', async () => {
+      id = 1;
+
+      const res = await exec();
+
+      // check the name has been changed
+      expect(res.status).toBe(404);
+    });
+
+    it('should return 404 if ID is not exists', async () => {
       id = mongoose.Types.ObjectId().toHexString();
 
       const res = await exec();
@@ -179,87 +186,88 @@ describe('/api/genres', () => {
       // check the name has been changed
       expect(res.status).toBe(404);
     });
+
+    it('should return updated genre if id is exist', async () => {
+      const res = await exec();
+  
+      // check the name has been changed
+      expect(res.body).toHaveProperty('_id');
+      expect(res.body).toHaveProperty('name', 'updatedName');
+    });
   });
 
   describe('DELETE /:id', () => {
 
     let id;
+    let genre;
+    let token;
 
     beforeEach( async () => {
-      let genre = new Genre({ 
-        _id: mongoose.Types.ObjectId().toHexString(), 
-        name: 'genre_2',
-      });
+      genre = new Genre({ name: 'genre_2' });
       await genre.save();
 
       id = genre._id;
+      let user = new User({ isAdmin: true });
+      token = new User(user).generateAuthToken();
     });
 
-    it('should return 401 if no token has provided', async () => {
-      token = '';
-
-      const res = await request(server)
-        .del(`/api/genres/${id}`)
+    const exec = async () => {
+      return await request(server)
+        .del('/api/genres/'+id)
         .set('x-auth-token', token)
         .send();
+    }
+
+    it('should return 401 if client is not login', async () => {
+      token = '';
+
+      const res = await exec();
 
       expect(res.status).toBe(401);
     });
 
     it('should return 403 if user is not admin', async () => {
-      token = new User().generateAuthToken();
-
-      console.log('[empty token]: ' + token);
-
-      const res = await request(server)
-        .del(`/api/genres/${id}`)
-        .set('x-auth-token', token)
-        .send();
+      token = new User({ isAdmin: false }).generateAuthToken();
+      const res = await exec();
 
       expect(res.status).toBe(403);
     });
 
-    it('should return 404 if given ID is not exists', async () => {
-      const user = ({ 
-        _id: mongoose.Types.ObjectId().toHexString(),
-        name: "johnSmith",
-        email: "johnsmith@gmail.com",
-        password: "1234TTA$",
-        isAdmin: true
-      });
+    it('should return 404 if given ID is invalid', async () => {
+      id = 1;
 
-      token = new User(user).generateAuthToken();
-      let id = mongoose.Types.ObjectId().toHexString();
+      const res = await exec();
 
-      const res = await request(server)
-        .del(`/api/genres/${id}`)
-        .set('x-auth-token', token)
-        .send();
+      expect(res.status).toBe(404);
+    });
+
+    it('should return 404 if no genre with the given id was found', async () => {
+      id = mongoose.Types.ObjectId().toHexString();
+
+      const res = await exec();
 
       expect(res.status).toBe(404);
     });
 
     it('should return genre if it is delete successfully', async () => {
-      const user = ({ 
-        _id: mongoose.Types.ObjectId().toHexString(),
-        name: "johnSmith",
-        email: "johnsmith@gmail.com",
-        password: "1234TTA$",
-        isAdmin: true
-      });
-      console.log('[user]: ' + user);
-
-      token = new User(user).generateAuthToken();
-
-      console.log('[token]: ' + token);
-      console.log('[id]: ' + id);
-
-      const res = await request(server)
-        .del(`/api/genres/${id}`)
-        .set('x-auth-token', token)
-        .send();
+      const res = await exec();
 
       expect(res.status).toBe(200);
     });
+
+    it('should return null when checking db', async () => {
+      await exec();
+
+      const genreInDb = await Genre.findById(id);
+
+      expect(genreInDb).toBeNull();
+    });
+
+    it('should return genre if delete has done', async () => {
+      const res = await exec();
+
+      expect(res.body).toHaveProperty('_id', genre._id.toHexString());
+      expect(res.body).toHaveProperty('name', genre.name);
+    })
   });
 });
