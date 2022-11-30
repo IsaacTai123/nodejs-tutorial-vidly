@@ -1,4 +1,5 @@
 const { Rental } = require('../../modules/rental');
+const { User } = require('../../modules/users');
 const mongoose = require('mongoose');
 const request = require('supertest');
 
@@ -7,11 +8,14 @@ describe('/api/returns', () => {
   let customerId;
   let movieId;
   let rental;
+  let token;
 
   beforeEach( async () => { 
     server = require('../../index');
+
     customerId = mongoose.Types.ObjectId();
     movieId = mongoose.Types.ObjectId();
+    token = new User().generateAuthToken();
 
     rental = new Rental({
       customer: {
@@ -24,16 +28,22 @@ describe('/api/returns', () => {
         title: 'abcdef',
         dailyRentalRate: 2
       }
-    })
+    });
 
     await rental.save();
-
   });
 
   afterEach( async () => {
     await server.close();
     await Rental.remove({});
   });
+
+  const exec = () => {
+    return request(server)
+      .post('/api/returns')
+      .set('x-auth-token', token)
+      .send({ customerId: customerId, movieId: movieId });
+  }
   
   it('should work', async () => {
     const result = await Rental.findById(rental._id);
@@ -41,21 +51,27 @@ describe('/api/returns', () => {
   });
 
   it('should return 401 if client is not logged in', async () => {
-    const res = await request(server)
-      .post('/api/returns')
-      .send({ customerId: customerId, movieId: movieId });
+    token = "";
+    const res = await exec();
 
     expect(res.status).toBe(401);
   });
 
-  // it('Return 400 if customerId is not provided', () => {
-  //   
-  // });
-  //
-  // it('Return 400 if movieId is not provided', () => {
-  //   
-  // });
-  //
+  it('should return 400 if customerId is not provided', async () => {
+    customerId = "";
+    const res = await exec();
+
+    expect(res.status).toBe(400);
+  });
+
+  it('Return 400 if movieId is not provided', async () => {
+    movieId = "";
+    const res = await exec();
+
+    expect(res.status).toBe(400);
+
+  });
+
   // it('Return 404 if no rental found for this customer/movie', () => {
   //   
   // });
