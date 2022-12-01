@@ -64,7 +64,7 @@ describe('/api/returns', () => {
     expect(res.status).toBe(400);
   });
 
-  it('Return 400 if movieId is not provided', async () => {
+  it('should return 400 if movieId is not provided', async () => {
     movieId = "";
     const res = await exec();
 
@@ -72,9 +72,15 @@ describe('/api/returns', () => {
 
   });
 
-  // it('Return 404 if no rental found for this customer/movie', () => {
-  //   
-  // });
+  it('should return 404 if no rental found for this customer/movie', async () => {
+    // customerId = mongoose.Types.ObjectId();
+    // movieId = mongoose.Types.ObjectId();
+    await Rental.remove({});
+
+    const res = await exec();
+    
+    expect(res.status).toBe(404);
+  });
   //
   // it('Return 400 if rental already process(customer already return the movie)', () => {
   //   
