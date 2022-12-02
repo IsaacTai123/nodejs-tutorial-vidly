@@ -3,6 +3,7 @@ const { User } = require('../../modules/users');
 const mongoose = require('mongoose');
 const request = require('supertest');
 const { logger } = require('../../startup/logging');
+const moment = require('moment');
 
 describe('/api/returns', () => {
   let server;
@@ -98,13 +99,24 @@ describe('/api/returns', () => {
     expect(res.status).toBe(200);
   });
  
-  // it('Set return date', () => {
-  //   
-  // });
-  //
-  // it('Calculate the rental fee', () => {
-  //   
-  // });
+  it('should set returnDate if input is valid', async () => {
+    await exec();
+    const rentalInDb = await Rental.findById(rental._id); 
+    const diff = new Date() - rentalInDb.dateReturned
+    expect(diff).toBeLessThan(10*1000);
+
+    // expect(rentalInDb.dateReturned).toBeDefined();
+  });
+
+  it('should calculate the rental fee (numberOfDays * movie.dailyRentalRate)', async () => {
+    rental.dateOut = moment().add(-7, 'days').toDate();
+    await rental.save();
+
+    await exec();
+
+    const rentalInDb = await Rental.findById(rental._id); 
+    expect(rentalInDb.rentalFee).toBe(14);
+  });
   //
   // it('Increse the stock ( add movie back to stock )', () => {
   //   
