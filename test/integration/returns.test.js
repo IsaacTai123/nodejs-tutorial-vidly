@@ -2,6 +2,7 @@ const { Rental } = require('../../modules/rental');
 const { User } = require('../../modules/users');
 const mongoose = require('mongoose');
 const request = require('supertest');
+const { logger } = require('../../startup/logging');
 
 describe('/api/returns', () => {
   let server;
@@ -81,15 +82,22 @@ describe('/api/returns', () => {
     
     expect(res.status).toBe(404);
   });
-  //
-  // it('Return 400 if rental already process(customer already return the movie)', () => {
-  //   
-  // });
-  //
-  // it('Return 200 if valid request', () => {
-  //   
-  // });
-  //
+
+  it('Return 400 if rental already process(customer already return the movie)', async () => {
+    rental.dateReturned = new Date();
+    await rental.save();
+    const res =  await exec();
+    
+    expect(res.status).toBe(400);
+  });
+
+  it('should return 200 if valid request', async () => {
+    const res = await exec();
+
+    // console.log(res.error.text);
+    expect(res.status).toBe(200);
+  });
+ 
   // it('Set return date', () => {
   //   
   // });
