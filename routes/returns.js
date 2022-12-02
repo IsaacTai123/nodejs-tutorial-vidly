@@ -3,6 +3,7 @@ const router = express.Router();
 const { Rental } = require('../modules/rental');
 const { logger } = require('../startup/logging');
 const auth = require('../middleware/auth');
+const moment = require('moment');
 
 router.post('/', auth, async (req, res) => {
   logger.info(`Request data from test ${ req.body.customerId }`);
@@ -23,6 +24,16 @@ router.post('/', auth, async (req, res) => {
 
   // already return 
   if (rental.dateReturned) return res.status(400).send('return already processed');
+  // or update dateReturned
+  rental.dateReturned = new Date();
+  await rental.save();
+  
+  // calculate fee
+  const diffs = moment().diff(rental.dateOut, 'days');
+  logger.info(`moment package: how many days after 11/30/22 ${ moment().diff(moment("2022-11-30"), 'days') }`)
+  const fee = diffs * rental.movie.dailyRentalRate;
+  rental.rentalFee = fee;
+  await rental.save();
   
   
   res.status(200).send();
