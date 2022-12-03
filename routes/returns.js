@@ -4,6 +4,7 @@ const { Rental } = require('../modules/rental');
 const { logger } = require('../startup/logging');
 const auth = require('../middleware/auth');
 const moment = require('moment');
+const { Movie } = require('../modules/movies');
 
 router.post('/', auth, async (req, res) => {
   logger.info(`Request data from test ${ req.body.customerId }`);
@@ -35,6 +36,11 @@ router.post('/', auth, async (req, res) => {
   rental.rentalFee = fee;
   await rental.save();
   
+  // add movie back to stock
+  const movie = await Movie.findOne({ _id: req.body.movieId });
+  movie.numberInStock += 1;
+  await movie.save();
+
   
   res.status(200).send();
 });
