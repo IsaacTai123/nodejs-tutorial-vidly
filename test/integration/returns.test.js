@@ -1,11 +1,10 @@
 const { Rental } = require('../../modules/rental');
 const { User } = require('../../modules/users');
+const { Movie } = require('../../modules/movies');
+const { logger } = require('../../startup/logging');
 const mongoose = require('mongoose');
 const request = require('supertest');
-const { logger } = require('../../startup/logging');
 const moment = require('moment');
-const { Movie } = require('../../modules/movies');
-const { Genre } = require('../../modules/genres');
 
 describe('/api/returns', () => {
   let server;
@@ -13,6 +12,7 @@ describe('/api/returns', () => {
   let movieId;
   let rental;
   let token;
+  let movie;
 
   beforeEach( async () => { 
     server = require('../../index');
@@ -37,14 +37,12 @@ describe('/api/returns', () => {
     await rental.save();
 
     // create a movie to put into db
-    const movie = new Movie({ 
+    movie = new Movie({ 
       _id: movieId,
       title: "the 2012",
-      genre: {
-        name: "horrific" 
-      },
+      genre: { name: "horrific" },
       numberInStock: 4,
-      dailyRentalRate: rental.movie.dailyRentalRate
+      dailyRentalRate: 2
     });
     await movie.save();
   });
@@ -52,6 +50,7 @@ describe('/api/returns', () => {
   afterEach( async () => {
     await server.close();
     await Rental.remove({});
+    await Movie.remove({});
   });
 
   const exec = () => {
@@ -132,11 +131,11 @@ describe('/api/returns', () => {
     expect(rentalInDb.rentalFee).toBe(14);
   });
 
-  it('Increse the stock ( add movie back to stock )', async () => {
-
+  it('should increse the stock ( add movie back to stock )', async () => {
     await exec();
+
     const movieInDb = await Movie.findById(movieId);
-    expect(movieInDb.numberInStock).toBe(5);
+    expect(movieInDb.numberInStock).toBe(movie.numberInStock + 1);
    
   });
 
