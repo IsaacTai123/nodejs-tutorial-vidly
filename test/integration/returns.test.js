@@ -139,7 +139,18 @@ describe('/api/returns', () => {
    
   });
 
-  // it('Return the rental', () => {
-  //   
-  // });
+  it('should return the rental if input is valid', async () => {
+    const res = await exec();
+    const rentalInDb = await Rental.findById(rental._id);
+
+    // logger.info(`res object ${ JSON.stringify(res) }`);
+    // logger.info(`res.Body ${ JSON.stringify(res.body) }`);
+    // logger.info(`rental Inside DB ${ JSON.stringify(rentalInDb) }`);
+    // logger.info(`data rentalInDb._id ${ rentalInDb._id } type ${ typeof( rentalInDb._id) }`);
+    // logger.info(`data res.body._id ${ res.body['_id'] } type ${ typeof(res.body['_id']) }`);
+    // logger.info(`data res.body._id ${ res.body._id } type ${ typeof(res.body['_id']) }`);
+
+    // expect(JSON.stringify(res.body['_id'])).toBe(JSON.stringify(rentalInDb._id));
+    expect(Object.keys(res.body)).toEqual(expect.arrayContaining(['dateOut', 'dateReturned', 'rentalFee', 'customer', 'movie']));
+  });
 });
