@@ -12,17 +12,9 @@ const validate = require('../middleware/validate');
 router.post('/', [auth, validate(validateReturn)], async (req, res) => {
   // logger.info(`Request data from test ${ req.body.customerId }`);
 
-  // console.log("[customerID: ] " + req.body.customerId);
-  // const { error } = validateReturn(req.body);
-  // logger.info(`error message: ${ error }`);
-  // if (error) return res.status(400).send(error.details[0].message);
-
-
   // TODO: access db
-  const rental = await Rental.findOne({ 
-    'customer._id': req.body.customerId, 
-    'movie._id': req.body.movieId,
-  });
+  const rental = await Rental.lookup(req.body.customerId, req.body.movieId);
+
   // logger.info(`Response data from db ${ rental }`);
   if (!rental) return res.status(404).send("Rental not found");
 
