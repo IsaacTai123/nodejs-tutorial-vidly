@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
-const moment = require('moment');
 const { Rental } = require('../modules/rental');
 const { logger } = require('../startup/logging');
 const { Movie } = require('../modules/movies');
@@ -20,15 +19,9 @@ router.post('/', [auth, validate(validateReturn)], async (req, res) => {
 
   // already return 
   if (rental.dateReturned) return res.status(400).send('return already processed');
-  // or update dateReturned
-  rental.dateReturned = new Date();
-  await rental.save();
-  
-  // calculate fee
-  const diffs = moment().diff(rental.dateOut, 'days');
-  // logger.info(`moment package: how many days after 11/30/22 ${ moment().diff(moment("2022-11-30"), 'days') }`)
-  const fee = diffs * rental.movie.dailyRentalRate;
-  rental.rentalFee = fee;
+
+  // calculate fee & update dateReturned
+  rental.return();
   await rental.save();
   
   // add movie back to stock
