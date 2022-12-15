@@ -1,8 +1,9 @@
 const { Rental } = require('../../modules/rental');
 const { User } = require('../../modules/users');
+const { Movie } = require('../../modules/movies');
+const { logger } = require('../../startup/logging');
 const mongoose = require('mongoose');
 const request = require('supertest');
-const { logger } = require('../../startup/logging');
 const moment = require('moment');
 
 describe('/api/returns', () => {
@@ -11,6 +12,7 @@ describe('/api/returns', () => {
   let movieId;
   let rental;
   let token;
+  let movie;
 
   beforeEach( async () => { 
     server = require('../../index');
@@ -33,11 +35,22 @@ describe('/api/returns', () => {
     });
 
     await rental.save();
+
+    // create a movie to put into db
+    movie = new Movie({ 
+      _id: movieId,
+      title: "the 2012",
+      genre: { name: "horrific" },
+      numberInStock: 4,
+      dailyRentalRate: 2
+    });
+    await movie.save();
   });
 
   afterEach( async () => {
     await server.close();
     await Rental.remove({});
+    await Movie.remove({});
   });
 
   const exec = () => {
@@ -117,12 +130,27 @@ describe('/api/returns', () => {
     const rentalInDb = await Rental.findById(rental._id); 
     expect(rentalInDb.rentalFee).toBe(14);
   });
-  //
-  // it('Increse the stock ( add movie back to stock )', () => {
-  //   
-  // });
-  //
-  // it('Return the rental', () => {
-  //   
-  // });
+
+  it('should increse the stock ( add movie back to stock )', async () => {
+    await exec();
+
+    const movieInDb = await Movie.findById(movieId);
+    expect(movieInDb.numberInStock).toBe(movie.numberInStock + 1);
+   
+  });
+
+  it('should return the rental if input is valid', async () => {
+    const res = await exec();
+    const rentalInDb = await Rental.findById(rental._id);
+
+    // logger.info(`res object ${ JSON.stringify(res) }`);
+    // logger.info(`res.Body ${ JSON.stringify(res.body) }`);
+    // logger.info(`rental Inside DB ${ JSON.stringify(rentalInDb) }`);
+    // logger.info(`data rentalInDb._id ${ rentalInDb._id } type ${ typeof( rentalInDb._id) }`);
+    // logger.info(`data res.body._id ${ res.body['_id'] } type ${ typeof(res.body['_id']) }`);
+    // logger.info(`data res.body._id ${ res.body._id } type ${ typeof(res.body['_id']) }`);
+
+    // expect(JSON.stringify(res.body['_id'])).toBe(JSON.stringify(rentalInDb._id));
+    expect(Object.keys(res.body)).toEqual(expect.arrayContaining(['dateOut', 'dateReturned', 'rentalFee', 'customer', 'movie']));
+  });
 });

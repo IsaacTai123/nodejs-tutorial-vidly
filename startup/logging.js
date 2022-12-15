@@ -51,7 +51,14 @@ const logger = new createLogger({
     }),
     new transports.File({
       filename: 'logs/info.log',
-      level: 'info'
+      level: 'info',
+      format: format.combine(
+        format.timestamp({ format: "MMM-DD-YYYY HH:MM:ss" }),
+        format.align(),
+        format.printf(
+          (info) => `[${info.timestamp}] ${info.level}: ${info.message}  `
+        )
+      )
     }),
     new transports.File({ 
       filename: 'logs/combined.log',

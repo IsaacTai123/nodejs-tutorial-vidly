@@ -1,7 +1,10 @@
 const Joi = require('joi')
 const mongoose = require('mongoose');
+const moment = require('moment');
+const { logger } = require('../startup/logging');
 
-const Rental = mongoose.model('Rental', new mongoose.Schema({
+
+const rentalSchema = new mongoose.Schema({
   customer: {
     type: new mongoose.Schema({
       name: {
@@ -53,7 +56,29 @@ const Rental = mongoose.model('Rental', new mongoose.Schema({
     type: Number, 
     min: 0
   }
-}));
+});
+
+// Static methods
+rentalSchema.statics.lookup = function(customerId, movieId) {
+  logger.info(`Static methods rental.js: ${ this }`)
+  return this.findOne({ 
+    'customer._id': customerId, 
+    'movie._id': movieId
+  });
+}
+
+// Instance methods
+rentalSchema.methods.return = function() {
+  logger.info(`Instance methods rental.js: ${ this }`)
+  this.dateReturned = new Date();
+
+  // logger.info(`moment package: how many days after 11/30/22 ${ moment().diff(moment("2022-11-30"), 'days') }`)
+  const diffs = moment().diff(this.dateOut, 'days');
+  this.rentalFee = diffs * this.movie.dailyRentalRate;
+}
+
+const Rental = mongoose.model('Rental', rentalSchema);
+
 
 function validateRental(rental) {
   const schema = Joi.object({

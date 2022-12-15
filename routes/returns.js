@@ -1,42 +1,47 @@
 const express = require('express');
 const router = express.Router();
+const Joi = require('joi');
 const { Rental } = require('../modules/rental');
 const { logger } = require('../startup/logging');
+const { Movie } = require('../modules/movies');
 const auth = require('../middleware/auth');
-const moment = require('moment');
+const validate = require('../middleware/validate');
 
-router.post('/', auth, async (req, res) => {
-  logger.info(`Request data from test ${ req.body.customerId }`);
-  console.log(`Request data from test ${ req.body.customerId }`);
-
-  // console.log("[customerID: ] " + req.body.customerId);
-  if (!req.body.customerId) return res.status(400).send('customerId not provided');
-  if (!req.body.movieId) return res.status(400).send('movieId not provided');
+router.post('/', [auth, validate(validateReturn)], async (req, res) => {
+  // logger.info(`Request data from test ${ req.body.customerId }`);
 
 
   // TODO: access db
-  const rental = await Rental.findOne({ 
-    'customer._id': req.body.customerId, 
-    'movie._id': req.body.movieId,
-  });
-  logger.info(`Response data from db ${ rental }`);
+  const rental = await Rental.lookup(req.body.customerId, req.body.movieId);
+
+  // logger.info(`Response data from db ${ rental }`);
   if (!rental) return res.status(404).send("Rental not found");
 
   // already return 
   if (rental.dateReturned) return res.status(400).send('return already processed');
-  // or update dateReturned
-  rental.dateReturned = new Date();
+
+  // calculate fee & update dateReturned
+  rental.return();
   await rental.save();
   
-  // calculate fee
-  const diffs = moment().diff(rental.dateOut, 'days');
-  logger.info(`moment package: how many days after 11/30/22 ${ moment().diff(moment("2022-11-30"), 'days') }`)
-  const fee = diffs * rental.movie.dailyRentalRate;
-  rental.rentalFee = fee;
-  await rental.save();
+  // add movie back to stock
+  await Movie.update({ _id: rental.movie._id }, { $inc: { numberInStock: 1 } })
   
-  
-  res.status(200).send();
+  return res.status(200).send(rental);
 });
 
-module.exports = router;
+function validateReturn(req) {
+  const schema = Joi.object({
+    customerId: Joi.objectId().required(),
+    movieId: Joi.objectId().required()
+  });
+
+  return schema.validate(req, { allowUnknown: true });
+}
+
+// logger.info(`From "returns.js type of validateReturn: [${ typeof(validateReturn) }]"`);
+
+// module.exports.returns = router;
+exports.returns = router;
+
+console.log(module);
